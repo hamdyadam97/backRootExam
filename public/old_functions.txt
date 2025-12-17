@@ -1,0 +1,459 @@
+
+//    public static function categoryReport()
+//    {
+//        $exams = ExamTrail::query()
+//            ->where('user_id', auth('api')->id())
+//            ->with(['categories'])
+//            ->get();
+//
+//        $categories = collect([]);
+//        $exams->map(function ($item) use ($categories) {
+//            $items = $item->categories ?? [];
+//            foreach ($items as $c_item) {
+//                $categories->where('id', $c_item->id)->count() ?: $categories->push($c_item);
+//            }
+//        });
+//
+//        $categories->filter()->unique()->toArray();
+//        $result = [];
+//        $details = ExamTrialDetails::query()->whereIn('exam_trial_id', $exams->pluck('id')->toArray())->get();
+//        $q_ids = $details->pluck('question_id')->unique()->toArray();
+//        foreach ($categories as $category) {
+//
+//            $total_questions = Questions::query()->whereIn('id', $q_ids)
+//                ->where('category_id', $category->id)->pluck('id')->toArray();
+//
+//            $correct_answers = 0;
+//            if (count($total_questions)) {
+//                $correct_answers = $details->whereIn('question_id', $total_questions)
+//                    ->where('is_correct', true)->count();
+//
+//            }
+//            $result[] = [
+//                'id' => $category->id,
+//                'name' => $category->name,
+//                'total_questions' => count($total_questions),
+//                'correct_answers' => $correct_answers,
+//            ];
+//        }
+//        return ['title' => 'Categories', 'result' => $result];
+//    }
+
+
+    public static function subCategoryReport()
+    {
+        $exams = self::query()->where('user_id', auth('api')->id())
+            ->with(['subCategories'])->get();
+        $sub_categories = collect([]);
+        $exams->map(function ($item) use ($sub_categories) {
+            $items = $item->subCategories ?? [];
+            foreach ($items as $s_item) {
+                $sub_categories->where('id', $s_item->id)->count() ?: $sub_categories->push($s_item);
+            }
+        });
+        $result = [];
+        $details = ExamTrialDetails::query()->whereIn('exam_trial_id', $exams->pluck('id')->toArray())->get();
+        $q_ids = $details->pluck('question_id')->unique()->toArray();
+
+        foreach ($sub_categories as $sub_category) {
+
+            $total_questions = Questions::query()->whereIn('id', $q_ids)
+                ->where('sub_category_id', $sub_category->id)->pluck('id')->toArray();
+
+            $correct_answers = 0;
+            if (count($total_questions)) {
+                $correct_answers = $details->whereIn('question_id', $total_questions)
+                    ->where('is_correct', true)->count();
+            }
+            $result[] = [
+                'id' => $sub_category->id,
+                'name' => $sub_category->name,
+                'total_questions' => count($total_questions),
+                'correct_answers' => $correct_answers,
+            ];
+        }
+        return ['title' => 'Sub Categories', 'result' => $result];
+    }
+
+ public static function subSubCategoryReport()
+    {
+        $exams = self::query()->where('user_id', auth('api')->id())
+            ->with(['subCategories'])->get();
+        $sub_sub_categories = collect([]);
+        $exams->map(function ($item) use ($sub_sub_categories) {
+            $items = $item->subSubCategories ?? [];
+            foreach ($items as $s_s_item) {
+                $sub_sub_categories->where('id', $s_s_item->id)->count() ?: $sub_sub_categories->push($s_s_item);
+            }
+        });
+        $result = [];
+        $details = ExamTrialDetails::query()->whereIn('exam_trial_id', $exams->pluck('id')->toArray())->get();
+        $q_ids = $details->pluck('question_id')->unique()->toArray();
+
+
+        foreach ($sub_sub_categories as $sub_sub_category) {
+
+            $total_questions = Questions::query()->whereIn('id', $q_ids)
+                ->where('sub_subcategory_id', $sub_sub_category->id)->pluck('id')->toArray();
+
+
+            $correct_answers = 0;
+            if (count($total_questions)) {
+                $correct_answers = $details->whereIn('question_id', $total_questions)
+                    ->where('is_correct', true)->count();
+            }
+
+            $result[] = [
+                'id' => $sub_sub_category->id,
+                'name' => $sub_sub_category->name,
+                'total_questions' => count($total_questions),
+                'correct_answers' => $correct_answers,
+            ];
+        }
+        return ['title' => 'Sub SubCategories', 'result' => $result];
+    }
+
+
+        public static function sectionReport()
+        {
+            $exams = self::query()->where('user_id', auth('api')->id())
+                ->with(['sections'])->get();
+            $sections = collect([]);
+            $exams->map(function ($item) use ($sections) {
+                $items = $item->sections ?? [];
+                foreach ($items as $s_item) {
+                    $sections->where('id', $s_item->id)->count() ?: $sections->push($s_item);
+                }
+            });
+            $result = [];
+            $details = ExamTrialDetails::query()->whereIn('exam_trial_id', $exams->pluck('id')->toArray())->get();
+            $q_ids = $details->pluck('question_id')->unique()->toArray();
+
+            foreach ($sections as $section) {
+                $total_questions = Questions::query()->whereIn('id', $q_ids)
+                    ->whereHas('exam_sections', function ($q) use ($section) {
+                        $q->where('section_id', $section->id);
+                    })
+                    ->pluck('id')->toArray();
+
+                $correct_answers = 0;
+                if (count($total_questions)) {
+                    $correct_answers = $details->whereIn('question_id', $total_questions)
+                        ->where('is_correct', true)->count();
+                }
+                $result[] = [
+                    'id' => $section->id,
+                    'name' => $section->name,
+                    'total_questions' => count($total_questions),
+                    'correct_answers' => $correct_answers,
+                ];
+            }
+            return ['title' => 'Sections', 'result' => $result];
+        }
+
+
+ public static function topicsReport()
+    {
+        $exams = self::query()->where('user_id', auth('api')->id())
+            ->with(['topics'])->get();
+        $topics = collect([]);
+        $exams->map(function ($item) use ($topics) {
+            $items = $item->topics ?? [];
+            foreach ($items as $t_item) {
+                $topics->where('id', $t_item->id)->count() ?: $topics->push($t_item);
+            }
+        });
+        $result = [];
+        $details = ExamTrialDetails::query()->whereIn('exam_trial_id', $exams->pluck('id')->toArray())->get();
+        $q_ids = $details->pluck('question_id')->unique()->toArray();
+
+        foreach ($topics as $topic) {
+
+            $total_questions = Questions::query()->whereIn('id', $q_ids)
+                ->whereHas('question_topic', function ($q) use ($topic) {
+                    $q->where('topic_id', $topic->id);
+                })
+                ->pluck('id')->toArray();
+
+            $correct_answers = 0;
+            if (count($total_questions)) {
+                $correct_answers = $details->whereIn('question_id', $total_questions)
+                    ->where('is_correct', true)->count();
+            }
+            $result[] = [
+                'id' => $topic->id,
+                'name' => $topic->topic,
+                'total_questions' => count($total_questions),
+                'correct_answers' => $correct_answers,
+            ];
+        }
+        return ['title' => 'Topics', 'result' => $result];
+    }
+/////////////////////////////////////////////////////////////
+
+    public static function categoryReport()
+    {
+        $userId = auth('api')->id();
+
+        $result = UserTrialExamsQuestionsVW::query()
+            ->selectRaw('category_name, category_id, COUNT(DISTINCT question_id) AS total_questions, SUM(is_correct) AS correct_answers')
+            ->where('user_id', $userId)
+            ->groupBy('category_name', 'category_id')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->category_id,
+                    'name' => $item->category_name,
+                    'total_questions' => $item->total_questions,
+                    'correct_answers' => @$item->correct_answers??0,
+                ];
+            })->toArray();
+
+//        dd($results1);
+
+
+//        $categories = Category::query()
+//            ->whereHas('examTrails', function ($query) use ($userId) {
+//                $query->where('user_id', $userId);
+//            })
+//            ->distinct()
+//            ->get();
+
+
+//        $q_ids = self::getQuestionsIds();
+//        $total_questions = Questions::query()
+//            ->whereIn('id', $q_ids)
+//            ->whereIn('category_id', $categories->pluck('id')->toArray())
+//            ->get();
+
+//        $result = $categories->map(function ($category) use ($userId, $total_questions) {
+//            // Get all question IDs for this category
+//
+//            $cat_questions = $total_questions->filter(function ($question) use ($category) {
+//                return $question->category_id == $category->id;
+//            })->pluck('id')->toArray();
+//
+//            if (count($cat_questions)) {
+//                $correct_answers = DB::select(
+//                    '
+//                        SELECT count(*) as count
+//                        FROM exam_trial_details
+//                        WHERE exam_trial_id IN (
+//                            SELECT id
+//                            FROM exam_trails
+//                            WHERE user_id = ' . $userId . '
+//                        )
+//                        AND question_id IN (' . implode(',', $cat_questions ?? []) . ')
+//                        AND is_correct = 1
+//                    ');
+//                $correct_answers = @$correct_answers[0]->count ?? 0;
+//            } else {
+//                $correct_answers = 0;
+//            }
+//
+//            return [
+//                'id' => $category->id,
+//                'name' => $category->name,
+//                'total_questions' => count($cat_questions),
+//                'correct_answers' => $correct_answers,
+//            ];
+//        });
+//
+//        dd($results1, [
+//            'title' => 'Categories',
+//            'result' => $result,
+//        ]);
+        return [
+            'title' => 'Categories',
+            'result' => $result,
+        ];
+
+
+    }
+
+    public static function subCategoryReport()
+    {
+        $userId = auth('api')->id();
+
+        $sub_categories = SubCategory::query()
+            ->whereHas('examTrails', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->distinct()
+            ->get();
+
+        $q_ids = self::getQuestionsIds();
+        $total_questions = Questions::query()
+            ->whereIn('id', $q_ids)
+            ->whereIn('sub_category_id', $sub_categories->pluck('id')->toArray())
+            ->get();
+
+        $result = $sub_categories->map(function ($sub_category) use ($userId, $total_questions) {
+            // Get all question IDs for this subcategory
+
+            $sub_questions = $total_questions->filter(function ($question) use ($sub_category) {
+                return $question->sub_category_id == $sub_category->id;
+            })->pluck('id')->toArray();
+
+            if (count($sub_questions)) {
+                $correct_answers = DB::select(
+                    '
+                        SELECT count(*) as count
+                        FROM exam_trial_details
+                        WHERE exam_trial_id IN (
+                            SELECT id
+                            FROM exam_trails
+                            WHERE user_id = ' . $userId . '
+                        )
+                        AND question_id IN (' . implode(',', $sub_questions ?? []) . ')
+                        AND is_correct = 1
+                    ');
+                $correct_answers = @$correct_answers[0]->count ?? 0;
+            } else {
+                $correct_answers = 0;
+            }
+
+//            $correct_answers = $details->whereIn('question_id', $sub_questions)
+//                ->where('is_correct', true)
+//                ->count();
+
+            return [
+                'id' => $sub_category->id,
+                'name' => $sub_category->name,
+                'total_questions' => count($sub_questions),
+                'correct_answers' => $correct_answers,
+            ];
+        });
+
+
+        return [
+            'title' => 'Sub Categories',
+            'result' => $result,
+        ];
+
+    }
+
+    public static function subSubCategoryReport()
+    {
+        $userId = auth('api')->id();
+
+        $sub_sub_categories = SubSubCategory::query()
+            ->whereHas('examTrails', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->distinct()
+            ->get();
+
+        // Prepare question IDs for faster lookup
+        $q_ids = self::getQuestionsIds();
+        $total_questions = Questions::query()
+            ->whereIn('id', $q_ids)
+            ->whereIn('sub_subcategory_id', $sub_sub_categories->pluck('id')->toArray())
+            ->get();
+
+        // Calculate results for each sub-subcategory
+        $result = $sub_sub_categories->map(function ($sub_sub_category) use ($userId, $total_questions) {
+
+
+            $sub_sub_questions = $total_questions->filter(function ($question) use ($sub_sub_category) {
+                return $question->sub_subcategory_id == $sub_sub_category->id;
+            })->pluck('id')->toArray();
+
+
+            // Count correct answers for the total questions in this sub-subcategory
+            if (count($sub_sub_questions)) {
+                $correct_answers = DB::select(
+                    '
+                        SELECT count(*) as count
+                        FROM exam_trial_details
+                        WHERE exam_trial_id IN (
+                            SELECT id
+                            FROM exam_trails
+                            WHERE user_id = ' . $userId . '
+                        )
+                        AND question_id IN (' . implode(',', $sub_sub_questions ?? []) . ')
+                        AND is_correct = 1
+                    ');
+                $correct_answers = @$correct_answers[0]->count ?? 0;
+            } else {
+                $correct_answers = 0;
+            }
+
+            return [
+                'id' => $sub_sub_category->id,
+                'name' => $sub_sub_category->name,
+                'total_questions' => count($sub_sub_questions),
+                'correct_answers' => $correct_answers,
+            ];
+        });
+
+        // Return the final result
+        return [
+            'title' => 'Sub SubCategories',
+            'result' => $result,
+        ];
+    }
+
+    public static function sectionReport()
+    {
+        $userId = auth('api')->id();
+
+        // Get unique sections linked to the user's exams
+        $sections = ExamSection::query()
+            ->whereHas('examTrails', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->distinct()
+            ->get();
+
+
+        // Prepare question IDs for faster lookup
+        $q_ids = self::getQuestionsIds();
+        $total_questions = Questions::query()
+            ->with('exam_sections')
+            ->whereIn('id', $q_ids)
+            ->whereHas('exam_sections', function ($query) use ($sections) {
+                $query->whereIn('section_id', $sections->pluck('id')->toArray());
+            })
+            ->get();
+
+        $result = $sections->map(function ($section) use ($userId, $total_questions) {
+
+
+            $section_questions = $total_questions->filter(function ($question) use ($section) {
+                return $question->exam_sections->whereIn('section_id', $section->id)->count();
+            })->pluck('id')->toArray();
+
+
+            if (count($section_questions)) {
+                $correct_answers = DB::select(
+                    '
+                        SELECT count(*) as count
+                        FROM exam_trial_details
+                        WHERE exam_trial_id IN (
+                            SELECT id
+                            FROM exam_trails
+                            WHERE user_id = ' . $userId . '
+                        )
+                        AND question_id IN (' . implode(',', $section_questions ?? []) . ')
+                        AND is_correct = 1
+                    ');
+                $correct_answers = @$correct_answers[0]->count ?? 0;
+            } else {
+                $correct_answers = 0;
+            }
+
+            return [
+                'id' => $section->id,
+                'name' => $section->name,
+                'total_questions' => count($section_questions),
+                'correct_answers' => $correct_answers,
+            ];
+        });
+
+        // Return the final result
+        return [
+            'title' => 'Sections',
+            'result' => $result,
+        ];
+    }

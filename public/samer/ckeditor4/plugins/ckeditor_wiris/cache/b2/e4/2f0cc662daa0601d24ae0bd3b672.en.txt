@@ -1,0 +1,1 @@
+{"result":{"text":"right to left square root of ٢٥ to the power of ٢ end root plus root index ٣ of ١ over ٢٧ end root minus root index ١ of ٢٠"},"status":"ok"}
