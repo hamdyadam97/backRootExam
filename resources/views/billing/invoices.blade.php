@@ -1,18 +1,12 @@
 @extends('layouts.master')
-
 @section('title')
     @lang('Invoices')
 @endsection
 
 @section('css')
-    <!-- Datatable Css -->
-    <link href="{{ URL::asset('/assets/libs/datatables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
-    <!-- Datepicker Css -->
-    <link href="{{ URL::asset('/assets/libs/bootstrap-datepicker/bootstrap-datepicker.min.css') }}" rel="stylesheet" type="text/css">
-    <!-- Sweet Alert-->
-    <link href="{{ URL::asset('/assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
-    <!-- Select2 Css -->
-    <link href="{{ URL::asset('/assets/libs/select2/select2.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ URL::asset('/assets/libs/datatables/datatables.min.css') }}" rel="stylesheet"/>
+    <link href="{{ URL::asset('/assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet"/>
+    <link href="{{ URL::asset('/assets/libs/select2/select2.min.css') }}" rel="stylesheet"/>
 @endsection
 
 @section('content')
@@ -22,37 +16,33 @@
             <div class="card-body">
 
                 <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h4 class="card-title">@lang('Invoices')</h4>
-                    <button id="sendInvoices" class="btn btn-primary waves-effect waves-light">
-                        @lang('Send to Accounting')
+                    <h4 class="card-title">@lang('All Invoices')</h4>
+                    <button type="button" class="btn btn-primary waves-effect btn-label waves-light add-new">
+                        <i class="bx bx-plus label-icon"></i> @lang('Add Invoice')
                     </button>
                 </div>
+                <button class="btn btn-success" id="sendInvoices">
+    <i class="bx bx-send"></i> Send to Invoicing System
+</button>
 
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label for="filter_package" class="form-label">Package</label>
-                        <select id="filter_package" class="form-control select2">
-                            <option value="">All Packages</option>
-                            @foreach (\App\Models\Packges::orderBy('status','desc')->get() as $package)
-                                <option value="{{ $package->id }}">
-                                    #{{ $package->id }} - {{ $package->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
 
                 <div class="table-responsive" data-simplebar>
-                    <table id="invoiceTable" class="table table-hover table-bordered table-nowrap w-100 dataTable">
+                    <table id="invoiceTable" class="table align-middle table-hover table-nowrap w-100">
                         <thead class="table-light">
-                            <tr>
-                                <th></th>
-                                <th>Invoice #</th>
-                                <th>User</th>
-                                <th>Package</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="select-all">
+                            </th>
+
+                            <th>ID</th>
+                            <th>Invoice #</th>
+                            <th>User</th>
+                            <th>Package</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
                         </thead>
                     </table>
                 </div>
@@ -62,20 +52,47 @@
     </div>
 </div>
 
-<!-- Modal if needed for details -->
-<div id="invoice-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+<!-- Add / Edit Modal -->
+<div id="add-modal" class="modal fade" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">@lang('Invoice Details')</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">
+                    <span class="modal-lable-class">Add</span> Invoice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <!-- محتوى الفاتورة هنا -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')</button>
-            </div>
+
+            <form id="add-form" method="post" action="{{ url('billing/addupdate') }}">
+                @csrf
+                <input type="hidden" name="id" id="edit-id" value="0">
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control">
+                        <span class="invalid-feedback" id="total_amountError"></span>
+                    </div>
+                    <div class="mb-3">
+                         <label class="form-label">Invoice Number</label>
+                         <input type="text" id="invoice_number" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                         <label class="form-label">User</label>
+                         <input type="text" id="username" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                         <label class="form-label">Package</label>
+                         <input type="text" id="package_name" class="form-control" readonly>
+                    </div>
+                  
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+
         </div>
     </div>
 </div>
@@ -83,55 +100,20 @@
 
 @section('script')
 <script src="{{ URL::asset('/assets/libs/datatables/datatables.min.js') }}"></script>
-<script src="{{ URL::asset('/assets/libs/bootstrap-datepicker/bootstrap-datepicker.min.js') }}"></script>
 <script src="{{ URL::asset('/assets/libs/sweetalert2/sweetalert2.min.js') }}"></script>
 <script src="{{ URL::asset('/assets/libs/select2/select2.min.js') }}"></script>
 
 <script>
-    $(function () {
-        $('#filter_package').select2();
+    var apiUrl   = "{{ route('billing.list') }}";
+    var detailUrl = "{{ url('billing/detail') }}";
+    var deleteUrl = "{{ url('billing/delete') }}";
+    var addUrl   = $('#add-form').attr('action');
+    var exportUrl = "{{ route('billing.sendToSystem') }}";
 
-        let table = $('#invoiceTable').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: "{{ route('billing.list') }}",
-                data: function(d){
-                    d.package_id = $('#filter_package').val();
-                }
-            },
-            columns: [
-                {data: 'checkbox', orderable:false, searchable:false},
-                {data: 'invoice_number'},
-                {data: 'username'},
-                {data: 'package'},
-                {data: 'total_amount'},
-                {data: 'status'},
-            ]
-        });
 
-        $('#sendInvoices').click(function () {
-            let ids = [];
-            $('.invoice-checkbox:checked').each(function () {
-                ids.push($(this).val());
-            });
-
-            if (!ids.length) {
-                Swal.fire('Select invoices first');
-                return;
-            }
-
-            $.post("{{ route('billing.send') }}", {
-                _token: "{{ csrf_token() }}",
-                invoice_ids: ids
-            }, function () {
-                table.ajax.reload(null, false);
-            });
-        });
-
-        $('#filter_package').on('change', function() {
-            table.ajax.reload(null, false);
-        });
-    });
 </script>
+@endsection
+
+@section('script-bottom')
+<script src="{{ addPageJsLink('billing.js') }}"></script>
 @endsection

@@ -69,10 +69,10 @@
                     </a>
                 </li>
                    <li class="">
-                    <a href="{{ route('billing.invoices') }}" class="waves-effect">
-                        <i class="bx bx-package"></i>
-                        <span> Bill package</span>
-                    </a>
+                   <a href="{{ route('billing.invoices') }}" class="waves-effect">
+    <i class="bx bx-package"></i>
+    <span>Bill package</span>
+</a>
                 </li>
 {{--                <li class="">--}}
 {{--                    <a href="{{ route('exam') }}" class="waves-effect">--}}

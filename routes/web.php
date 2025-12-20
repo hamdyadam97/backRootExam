@@ -48,6 +48,8 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
+
+
 Route::middleware(['auth', 'adminAccess'])->group(function () {
 
     Route::group(['prefix' => 'user'], function () {
@@ -217,12 +219,17 @@ Route::middleware(['auth', 'adminAccess'])->group(function () {
         Route::post('/delete', 'DiscountsCodeController@delete')->name('discountscode.delete');
     });
 Route::group(['prefix' => 'billing'], function () {
-        Route::get('/invoices', 'BillingController@index')->name('billing.invoices');
-        Route::get('/get', 'BillingController@get')->name('billing.list');
-        Route::post('/send', 'BillingController@send')->name('billing.send');
-        Route::get('/{id}', [BillingController::class, 'show'])->name('billing.show');
-    Route::delete('/{id}', [BillingController::class, 'destroy'])->name('billing.delete');
-    });
+    Route::get('/invoices', 'BillingController@index')->name('billing.invoices');
+    Route::get('/get', 'BillingController@get')->name('billing.list');
+    Route::post('/send', 'BillingController@send')->name('billing.send');
+    Route::post('/send-to-system', 'BillingController@sendToSystem')->name('billing.sendToSystem');
+    Route::get('/{id}', 'BillingController@detail')->name('billing.detail');
+    Route::delete('/{id}', 'BillingController@destroy')->name('billing.delete');
+    
+
+    
+});
+
     /* Routes For Payments Type */
     Route::group(['prefix' => 'payment-types'], function () {
         Route::get('/', 'PaymentTypeController@index')->name('payment-types');

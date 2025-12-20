@@ -75,7 +75,6 @@
                                 <th>Coupon</th>
                                 <th>Start date</th>
                                 <th>End date</th>
-
                                 <th>Actions</th>
                             </tr>
                             </thead>
