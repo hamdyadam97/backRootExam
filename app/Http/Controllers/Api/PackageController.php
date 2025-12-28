@@ -94,14 +94,13 @@ class PackageController extends BaseController
             return $this->send_error('No user found', ['UserNotFound' => ['No user found']], 400);
         }
 
-      if (!$user->isProfileCompleted()) {
-    return $this->api_response(
-        false,
-        'يجب استكمال بيانات الملف الشخصي قبل الاشتراك',
-        [],
-        403
-    );
+     if (!$user->profile_completed) {
+    return response()->json([
+        'status' => false,
+        'message' => 'يجب استكمال بيانات الملف الشخصي قبل الاشتراك'
+    ], 403);
 }
+
 
 
 \Log::info('Profile Check', [
@@ -184,9 +183,11 @@ class PackageController extends BaseController
     {
         $user = $request->user();
 
-        if (!$user || !$user->isProfileCompleted()) {
-            return false; // أو throw exception
-        }
+       
+        if (!$user || !$user->profile_completed) {
+    return false;
+}
+
 
         $package = Packges::query()->find($request->package_id);
         $user = $request->user();

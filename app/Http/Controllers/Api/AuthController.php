@@ -25,6 +25,10 @@ class AuthController extends BaseController
                 'name' => 'required|string|max:255',
                 'mobile' => 'required|numeric|unique:users,mobile',
                 'password' => 'required|min:8|confirmed',
+                'email' => 'required|email|unique:users,email',
+                'specialization' => 'required|string|max:255',
+                'governorate' => 'required|string|max:255',
+                'birth_date' => 'required|date',
             ]);
             if ($validator->fails()) {
                 return $this->send_error('Validation Errors', json_decode($validator->errors(), true), 422);
@@ -38,8 +42,14 @@ class AuthController extends BaseController
                 'dial_code' => $request['dial_code'],
                 'mobile_number' => $request['mobile_number'],
                 'mobile' => $request['mobile'],
+                'specialization' => $request->specialization,
+                'email' => $request->email,
+                'governorate' => $request->governorate,
+                'birth_date' => $request->birth_date,
                 'otp' => $otp,
                 'password' => Hash::make($request->password),
+                'profile_completed' => true,
+
             ]);
 
             $this->send_otp($request['mobile'], $otp);
