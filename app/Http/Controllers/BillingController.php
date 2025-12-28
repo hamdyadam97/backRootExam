@@ -136,58 +136,6 @@ class BillingController extends Controller
 
 
 
-public function sendToSystem(Request $request, PhenixBillingService $phenix)
-{
-    $request->validate([
-        'invoices' => 'required|array'
-    ]);
-
-    DB::beginTransaction();
-
-    try {
-        $invoices = Invoice::with(['user','userPackage.getPackage'])
-            ->whereIn('id', $request->invoices)
-            ->where('status', 'draft')
-            ->get();
-
-        foreach ($invoices as $invoice) {
-
-            // تجهيز الداتا حسب Phenix
-            $payload = [
-                'InvoiceNumber' => $invoice->invoice_number,
-                'CustomerName'  => $invoice->user->first_name.' '.$invoice->user->last_name,
-                'Amount'        => $invoice->total_amount,
-                'Description'   => optional($invoice->userPackage->getPackage)->name,
-                'Date'          => $invoice->created_at->format('Y-m-d'),
-            ];
-
-            $response = $phenix->sendInvoice($payload);
-
-            if (!$response->successful()) {
-                throw new \Exception('Phenix API Error');
-            }
-
-            // تحديث الحالة
-            $invoice->update([
-                'status' => 'sent'
-            ]);
-        }
-
-        DB::commit();
-
-        return response()->json([
-            'status' => true
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-
-        return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-        ]);
-    }
-}
 
 
 
@@ -241,4 +189,66 @@ public function sendToSystem(Request $request, PhenixBillingService $phenix)
             'message' => 'Delete failed'
         ]);
     }
+
+
+
+public function sendToSystem(Request $request, PhenixBillingService $phenix)
+{
+    $request->validate([
+        'invoices' => 'required|array'
+    ]);
+
+    try {
+
+        $invoices = Invoice::with(['user','userPackage.getPackage'])
+            ->whereIn('id', $request->invoices)
+            ->get();
+
+        if ($invoices->isEmpty()) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No invoices found'
+            ], 404);
+        }
+
+        $responses = [];
+
+        foreach ($invoices as $invoice) {
+
+            $payload = [
+                'InvoiceNumber' => $invoice->invoice_number,
+                'CustomerName'  => $invoice->user->first_name . ' ' . $invoice->user->last_name,
+                'Amount'        => $invoice->total_amount,
+                'Description'   => optional($invoice->userPackage->getPackage)->name,
+                'Date'          => $invoice->created_at->format('Y-m-d'),
+            ];
+
+            $response = $phenix->sendInvoice($payload);
+
+            // 👇 رجوع الرد الخام بدون أي تعديل
+            $responses[] = [
+                'invoice_id'   => $invoice->id,
+                'http_status'  => $response->status(),
+                'headers'      => $response->headers(),
+                'raw_body'     => $response->body(),
+                'json_body'    => $response->json(),
+                'payload_sent' => $payload,
+            ];
+        }
+
+        return response()->json([
+            'status'    => true,
+            'responses' => $responses
+        ]);
+
+    } catch (\Throwable $e) {
+
+        return response()->json([
+            'status'  => false,
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 }

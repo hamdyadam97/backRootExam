@@ -117,6 +117,13 @@ class UserpackgesController extends Controller
             if ($validator->fails()) {
                 $result = ['status' => false, 'error' => $validator->errors()];
             } else {
+                 $user = User::find($request->user_id);
+                if (!$user || !$user->isProfileCompleted()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'لا يمكن إضافة اشتراك قبل استكمال بيانات المستخدم بالكامل'
+                    ]);
+                }
                 $succssmsg = trans('User package added successfully');
                 if ($request->id) {
                     $model = Userpackges::where('id', $request->id)->first();

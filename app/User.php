@@ -187,6 +187,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(ExamTrail::class);
     }
+public function isProfileCompleted(): bool
+{
+    return !empty($this->first_name)
+        && !empty($this->last_name)
+        && !empty($this->email)
+        && !empty($this->mobile_number)
+        && !empty($this->birth_date)
+        && !empty($this->specialization)
+        && !empty($this->governorate);
+}
+
+
+public function getProfileCompletedAttribute(): bool
+{
+    return $this->isProfileCompleted();
+}
 
 
     public function makeTrailSubscription()

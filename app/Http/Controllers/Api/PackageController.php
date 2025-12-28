@@ -94,6 +94,28 @@ class PackageController extends BaseController
             return $this->send_error('No user found', ['UserNotFound' => ['No user found']], 400);
         }
 
+      if (!$user->isProfileCompleted()) {
+    return $this->api_response(
+        false,
+        'يجب استكمال بيانات الملف الشخصي قبل الاشتراك',
+        [],
+        403
+    );
+}
+
+
+\Log::info('Profile Check', [
+    'first_name' => !empty($user->first_name),
+    'last_name' => !empty($user->last_name),
+    'email' => !empty($user->email),
+    'mobile_number' => !empty($user->mobile_number),
+    'birth_date' => !empty($user->birth_date),
+    'specialization' => !empty($user->specialization),
+    'governorate' => !empty($user->governorate),
+]);
+
+
+
         $validator = Validator::make($request->all(), [
             'package_id' => 'required|exists:packages,id,status,1'
         ]);
@@ -160,6 +182,12 @@ class PackageController extends BaseController
 
     public function saveTransaction(Request $request)
     {
+        $user = $request->user();
+
+        if (!$user || !$user->isProfileCompleted()) {
+            return false; // أو throw exception
+        }
+
         $package = Packges::query()->find($request->package_id);
         $user = $request->user();
         $money_log = MoneyLogs::query()->create([
